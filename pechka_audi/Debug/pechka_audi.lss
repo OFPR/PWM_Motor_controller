@@ -1,0 +1,300 @@
+
+pechka_audi.elf:     file format elf32-avr
+
+Sections:
+Idx Name          Size      VMA       LMA       File off  Algn
+  0 .text         00000172  00000000  00000000  00000054  2**1
+                  CONTENTS, ALLOC, LOAD, READONLY, CODE
+  1 .stab         000006b4  00000000  00000000  000001c8  2**2
+                  CONTENTS, READONLY, DEBUGGING
+  2 .stabstr      00000085  00000000  00000000  0000087c  2**0
+                  CONTENTS, READONLY, DEBUGGING
+  3 .debug_aranges 00000020  00000000  00000000  00000901  2**0
+                  CONTENTS, READONLY, DEBUGGING
+  4 .debug_pubnames 00000037  00000000  00000000  00000921  2**0
+                  CONTENTS, READONLY, DEBUGGING
+  5 .debug_info   000000f1  00000000  00000000  00000958  2**0
+                  CONTENTS, READONLY, DEBUGGING
+  6 .debug_abbrev 000000a0  00000000  00000000  00000a49  2**0
+                  CONTENTS, READONLY, DEBUGGING
+  7 .debug_line   000001d3  00000000  00000000  00000ae9  2**0
+                  CONTENTS, READONLY, DEBUGGING
+  8 .debug_frame  00000050  00000000  00000000  00000cbc  2**2
+                  CONTENTS, READONLY, DEBUGGING
+  9 .debug_str    000000b4  00000000  00000000  00000d0c  2**0
+                  CONTENTS, READONLY, DEBUGGING
+ 10 .debug_pubtypes 0000002b  00000000  00000000  00000dc0  2**0
+                  CONTENTS, READONLY, DEBUGGING
+
+Disassembly of section .text:
+
+00000000 <__vectors>:
+   0:	09 c0       	rjmp	.+18     	; 0x14 <__ctors_end>
+   2:	0e c0       	rjmp	.+28     	; 0x20 <__bad_interrupt>
+   4:	0d c0       	rjmp	.+26     	; 0x20 <__bad_interrupt>
+   6:	0c c0       	rjmp	.+24     	; 0x20 <__bad_interrupt>
+   8:	0b c0       	rjmp	.+22     	; 0x20 <__bad_interrupt>
+   a:	0a c0       	rjmp	.+20     	; 0x20 <__bad_interrupt>
+   c:	09 c0       	rjmp	.+18     	; 0x20 <__bad_interrupt>
+   e:	08 c0       	rjmp	.+16     	; 0x20 <__bad_interrupt>
+  10:	07 c0       	rjmp	.+14     	; 0x20 <__bad_interrupt>
+  12:	06 c0       	rjmp	.+12     	; 0x20 <__bad_interrupt>
+
+00000014 <__ctors_end>:
+  14:	11 24       	eor	r1, r1
+  16:	1f be       	out	0x3f, r1	; 63
+  18:	cf e9       	ldi	r28, 0x9F	; 159
+  1a:	cd bf       	out	0x3d, r28	; 61
+  1c:	60 d0       	rcall	.+192    	; 0xde <main>
+  1e:	a7 c0       	rjmp	.+334    	; 0x16e <_exit>
+
+00000020 <__bad_interrupt>:
+  20:	ef cf       	rjmp	.-34     	; 0x0 <__vectors>
+
+00000022 <setup>:
+ */ 
+
+#include <avr/io.h>
+#include <avr/iotn13.h>
+void setup(void)
+{
+  22:	df 93       	push	r29
+  24:	cf 93       	push	r28
+  26:	cd b7       	in	r28, 0x3d	; 61
+  28:	de b7       	in	r29, 0x3e	; 62
+	DDRB = 0x01;
+  2a:	87 e3       	ldi	r24, 0x37	; 55
+  2c:	90 e0       	ldi	r25, 0x00	; 0
+  2e:	21 e0       	ldi	r18, 0x01	; 1
+  30:	fc 01       	movw	r30, r24
+  32:	20 83       	st	Z, r18
+	PORTB = 0x1F;
+  34:	88 e3       	ldi	r24, 0x38	; 56
+  36:	90 e0       	ldi	r25, 0x00	; 0
+  38:	2f e1       	ldi	r18, 0x1F	; 31
+  3a:	fc 01       	movw	r30, r24
+  3c:	20 83       	st	Z, r18
+	// Set to 'Fast PWM' mode
+	TCCR0A = (1 << WGM01) | (1 << WGM00);
+  3e:	8f e4       	ldi	r24, 0x4F	; 79
+  40:	90 e0       	ldi	r25, 0x00	; 0
+  42:	23 e0       	ldi	r18, 0x03	; 3
+  44:	fc 01       	movw	r30, r24
+  46:	20 83       	st	Z, r18
+	
+}
+  48:	cf 91       	pop	r28
+  4a:	df 91       	pop	r29
+  4c:	08 95       	ret
+
+0000004e <PWM>:
+
+void PWM(uint8_t val)
+{
+  4e:	df 93       	push	r29
+  50:	cf 93       	push	r28
+  52:	0f 92       	push	r0
+  54:	cd b7       	in	r28, 0x3d	; 61
+  56:	de b7       	in	r29, 0x3e	; 62
+  58:	89 83       	std	Y+1, r24	; 0x01
+	if (val != 0)
+  5a:	89 81       	ldd	r24, Y+1	; 0x01
+  5c:	88 23       	and	r24, r24
+  5e:	a1 f0       	breq	.+40     	; 0x88 <PWM+0x3a>
+	{
+		// Clear OC0A output on compare match, upwards counting.
+		TCCR0A |= (1 << COM0A1)|(1 << COM0A0);
+  60:	8f e4       	ldi	r24, 0x4F	; 79
+  62:	90 e0       	ldi	r25, 0x00	; 0
+  64:	2f e4       	ldi	r18, 0x4F	; 79
+  66:	30 e0       	ldi	r19, 0x00	; 0
+  68:	f9 01       	movw	r30, r18
+  6a:	20 81       	ld	r18, Z
+  6c:	20 6c       	ori	r18, 0xC0	; 192
+  6e:	fc 01       	movw	r30, r24
+  70:	20 83       	st	Z, r18
+		OCR0A = val;
+  72:	86 e5       	ldi	r24, 0x56	; 86
+  74:	90 e0       	ldi	r25, 0x00	; 0
+  76:	29 81       	ldd	r18, Y+1	; 0x01
+  78:	fc 01       	movw	r30, r24
+  7a:	20 83       	st	Z, r18
+		TCCR0B = 1<<0|1<<1; // pwm freq 36Hz 
+  7c:	83 e5       	ldi	r24, 0x53	; 83
+  7e:	90 e0       	ldi	r25, 0x00	; 0
+  80:	23 e0       	ldi	r18, 0x03	; 3
+  82:	fc 01       	movw	r30, r24
+  84:	20 83       	st	Z, r18
+  86:	11 c0       	rjmp	.+34     	; 0xaa <__stack+0xb>
+	} 
+	else
+	{
+		OCR0A = 0;
+  88:	86 e5       	ldi	r24, 0x56	; 86
+  8a:	90 e0       	ldi	r25, 0x00	; 0
+  8c:	fc 01       	movw	r30, r24
+  8e:	10 82       	st	Z, r1
+		TCCR0A &= ~((1 << COM0A1)| (1<< COM0A0));
+  90:	8f e4       	ldi	r24, 0x4F	; 79
+  92:	90 e0       	ldi	r25, 0x00	; 0
+  94:	2f e4       	ldi	r18, 0x4F	; 79
+  96:	30 e0       	ldi	r19, 0x00	; 0
+  98:	f9 01       	movw	r30, r18
+  9a:	20 81       	ld	r18, Z
+  9c:	2f 73       	andi	r18, 0x3F	; 63
+  9e:	fc 01       	movw	r30, r24
+  a0:	20 83       	st	Z, r18
+		TCCR0B = 0x00;
+  a2:	83 e5       	ldi	r24, 0x53	; 83
+  a4:	90 e0       	ldi	r25, 0x00	; 0
+  a6:	fc 01       	movw	r30, r24
+  a8:	10 82       	st	Z, r1
+	}
+}
+  aa:	0f 90       	pop	r0
+  ac:	cf 91       	pop	r28
+  ae:	df 91       	pop	r29
+  b0:	08 95       	ret
+
+000000b2 <delay>:
+void delay(uint16_t de)
+{
+  b2:	df 93       	push	r29
+  b4:	cf 93       	push	r28
+  b6:	00 d0       	rcall	.+0      	; 0xb8 <delay+0x6>
+  b8:	cd b7       	in	r28, 0x3d	; 61
+  ba:	de b7       	in	r29, 0x3e	; 62
+  bc:	9a 83       	std	Y+2, r25	; 0x02
+  be:	89 83       	std	Y+1, r24	; 0x01
+	while (!(de == 0))
+  c0:	05 c0       	rjmp	.+10     	; 0xcc <delay+0x1a>
+	{
+		de--;
+  c2:	89 81       	ldd	r24, Y+1	; 0x01
+  c4:	9a 81       	ldd	r25, Y+2	; 0x02
+  c6:	01 97       	sbiw	r24, 0x01	; 1
+  c8:	9a 83       	std	Y+2, r25	; 0x02
+  ca:	89 83       	std	Y+1, r24	; 0x01
+		TCCR0B = 0x00;
+	}
+}
+void delay(uint16_t de)
+{
+	while (!(de == 0))
+  cc:	89 81       	ldd	r24, Y+1	; 0x01
+  ce:	9a 81       	ldd	r25, Y+2	; 0x02
+  d0:	00 97       	sbiw	r24, 0x00	; 0
+  d2:	b9 f7       	brne	.-18     	; 0xc2 <delay+0x10>
+	{
+		de--;
+	}
+}
+  d4:	ce 5f       	subi	r28, 0xFE	; 254
+  d6:	cd bf       	out	0x3d, r28	; 61
+  d8:	cf 91       	pop	r28
+  da:	df 91       	pop	r29
+  dc:	08 95       	ret
+
+000000de <main>:
+
+int main(void)
+{
+  de:	df 93       	push	r29
+  e0:	cf 93       	push	r28
+  e2:	cd b7       	in	r28, 0x3d	; 61
+  e4:	de b7       	in	r29, 0x3e	; 62
+	setup();
+  e6:	9d df       	rcall	.-198    	; 0x22 <setup>
+    while(1)
+    {
+		if (!(PINB & 0x10)){
+  e8:	86 e3       	ldi	r24, 0x36	; 54
+  ea:	90 e0       	ldi	r25, 0x00	; 0
+  ec:	fc 01       	movw	r30, r24
+  ee:	80 81       	ld	r24, Z
+  f0:	88 2f       	mov	r24, r24
+  f2:	90 e0       	ldi	r25, 0x00	; 0
+  f4:	80 71       	andi	r24, 0x10	; 16
+  f6:	90 70       	andi	r25, 0x00	; 0
+  f8:	00 97       	sbiw	r24, 0x00	; 0
+  fa:	19 f4       	brne	.+6      	; 0x102 <main+0x24>
+			PWM(255); // 100%
+  fc:	8f ef       	ldi	r24, 0xFF	; 255
+  fe:	a7 df       	rcall	.-178    	; 0x4e <PWM>
+ 100:	32 c0       	rjmp	.+100    	; 0x166 <main+0x88>
+		}
+		else if (!(PINB & 0x08)){
+ 102:	86 e3       	ldi	r24, 0x36	; 54
+ 104:	90 e0       	ldi	r25, 0x00	; 0
+ 106:	fc 01       	movw	r30, r24
+ 108:	80 81       	ld	r24, Z
+ 10a:	88 2f       	mov	r24, r24
+ 10c:	90 e0       	ldi	r25, 0x00	; 0
+ 10e:	88 70       	andi	r24, 0x08	; 8
+ 110:	90 70       	andi	r25, 0x00	; 0
+ 112:	00 97       	sbiw	r24, 0x00	; 0
+ 114:	19 f4       	brne	.+6      	; 0x11c <main+0x3e>
+			PWM(192); // 75%
+ 116:	80 ec       	ldi	r24, 0xC0	; 192
+ 118:	9a df       	rcall	.-204    	; 0x4e <PWM>
+ 11a:	25 c0       	rjmp	.+74     	; 0x166 <main+0x88>
+		}
+		else if (!(PINB & 0x04)){
+ 11c:	86 e3       	ldi	r24, 0x36	; 54
+ 11e:	90 e0       	ldi	r25, 0x00	; 0
+ 120:	fc 01       	movw	r30, r24
+ 122:	80 81       	ld	r24, Z
+ 124:	88 2f       	mov	r24, r24
+ 126:	90 e0       	ldi	r25, 0x00	; 0
+ 128:	84 70       	andi	r24, 0x04	; 4
+ 12a:	90 70       	andi	r25, 0x00	; 0
+ 12c:	00 97       	sbiw	r24, 0x00	; 0
+ 12e:	19 f4       	brne	.+6      	; 0x136 <main+0x58>
+			PWM(128); // 50%
+ 130:	80 e8       	ldi	r24, 0x80	; 128
+ 132:	8d df       	rcall	.-230    	; 0x4e <PWM>
+ 134:	18 c0       	rjmp	.+48     	; 0x166 <main+0x88>
+		}
+		else if (!(PINB & 0x02)){
+ 136:	86 e3       	ldi	r24, 0x36	; 54
+ 138:	90 e0       	ldi	r25, 0x00	; 0
+ 13a:	fc 01       	movw	r30, r24
+ 13c:	80 81       	ld	r24, Z
+ 13e:	88 2f       	mov	r24, r24
+ 140:	90 e0       	ldi	r25, 0x00	; 0
+ 142:	82 70       	andi	r24, 0x02	; 2
+ 144:	90 70       	andi	r25, 0x00	; 0
+ 146:	00 97       	sbiw	r24, 0x00	; 0
+ 148:	19 f4       	brne	.+6      	; 0x150 <main+0x72>
+			PWM(64); // 25%
+ 14a:	80 e4       	ldi	r24, 0x40	; 64
+ 14c:	80 df       	rcall	.-256    	; 0x4e <PWM>
+ 14e:	0b c0       	rjmp	.+22     	; 0x166 <main+0x88>
+		}
+		else{
+			PWM(0); //Off
+ 150:	80 e0       	ldi	r24, 0x00	; 0
+ 152:	7d df       	rcall	.-262    	; 0x4e <PWM>
+			PORTB |= 1<<0;
+ 154:	88 e3       	ldi	r24, 0x38	; 56
+ 156:	90 e0       	ldi	r25, 0x00	; 0
+ 158:	28 e3       	ldi	r18, 0x38	; 56
+ 15a:	30 e0       	ldi	r19, 0x00	; 0
+ 15c:	f9 01       	movw	r30, r18
+ 15e:	20 81       	ld	r18, Z
+ 160:	21 60       	ori	r18, 0x01	; 1
+ 162:	fc 01       	movw	r30, r24
+ 164:	20 83       	st	Z, r18
+		};		
+		delay(16318);
+ 166:	8e eb       	ldi	r24, 0xBE	; 190
+ 168:	9f e3       	ldi	r25, 0x3F	; 63
+ 16a:	a3 df       	rcall	.-186    	; 0xb2 <delay>
+    }
+ 16c:	bd cf       	rjmp	.-134    	; 0xe8 <main+0xa>
+
+0000016e <_exit>:
+ 16e:	f8 94       	cli
+
+00000170 <__stop_program>:
+ 170:	ff cf       	rjmp	.-2      	; 0x170 <__stop_program>

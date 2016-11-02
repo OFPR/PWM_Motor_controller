@@ -1,0 +1,95 @@
+
+pechka_audi.elf:     file format elf32-avr
+
+Sections:
+Idx Name          Size      VMA       LMA       File off  Algn
+  0 .text         00000080  00000000  00000000  00000054  2**1
+                  CONTENTS, ALLOC, LOAD, READONLY, CODE
+  1 .stab         000006b4  00000000  00000000  000000d4  2**2
+                  CONTENTS, READONLY, DEBUGGING
+  2 .stabstr      00000085  00000000  00000000  00000788  2**0
+                  CONTENTS, READONLY, DEBUGGING
+
+Disassembly of section .text:
+
+00000000 <__vectors>:
+   0:	09 c0       	rjmp	.+18     	; 0x14 <__ctors_end>
+   2:	0e c0       	rjmp	.+28     	; 0x20 <__bad_interrupt>
+   4:	0d c0       	rjmp	.+26     	; 0x20 <__bad_interrupt>
+   6:	0c c0       	rjmp	.+24     	; 0x20 <__bad_interrupt>
+   8:	0b c0       	rjmp	.+22     	; 0x20 <__bad_interrupt>
+   a:	0a c0       	rjmp	.+20     	; 0x20 <__bad_interrupt>
+   c:	09 c0       	rjmp	.+18     	; 0x20 <__bad_interrupt>
+   e:	08 c0       	rjmp	.+16     	; 0x20 <__bad_interrupt>
+  10:	07 c0       	rjmp	.+14     	; 0x20 <__bad_interrupt>
+  12:	06 c0       	rjmp	.+12     	; 0x20 <__bad_interrupt>
+
+00000014 <__ctors_end>:
+  14:	11 24       	eor	r1, r1
+  16:	1f be       	out	0x3f, r1	; 63
+  18:	cf e9       	ldi	r28, 0x9F	; 159
+  1a:	cd bf       	out	0x3d, r28	; 61
+  1c:	19 d0       	rcall	.+50     	; 0x50 <main>
+  1e:	2e c0       	rjmp	.+92     	; 0x7c <_exit>
+
+00000020 <__bad_interrupt>:
+  20:	ef cf       	rjmp	.-34     	; 0x0 <__vectors>
+
+00000022 <setup>:
+  22:	81 e0       	ldi	r24, 0x01	; 1
+  24:	87 bb       	out	0x17, r24	; 23
+  26:	8f e1       	ldi	r24, 0x1F	; 31
+  28:	88 bb       	out	0x18, r24	; 24
+  2a:	83 e0       	ldi	r24, 0x03	; 3
+  2c:	8f bd       	out	0x2f, r24	; 47
+  2e:	08 95       	ret
+
+00000030 <PWM>:
+  30:	88 23       	and	r24, r24
+  32:	39 f0       	breq	.+14     	; 0x42 <__SREG__+0x3>
+  34:	9f b5       	in	r25, 0x2f	; 47
+  36:	90 6c       	ori	r25, 0xC0	; 192
+  38:	9f bd       	out	0x2f, r25	; 47
+  3a:	86 bf       	out	0x36, r24	; 54
+  3c:	81 e0       	ldi	r24, 0x01	; 1
+  3e:	83 bf       	out	0x33, r24	; 51
+  40:	08 95       	ret
+  42:	16 be       	out	0x36, r1	; 54
+  44:	8f b5       	in	r24, 0x2f	; 47
+  46:	8f 73       	andi	r24, 0x3F	; 63
+  48:	8f bd       	out	0x2f, r24	; 47
+  4a:	13 be       	out	0x33, r1	; 51
+  4c:	08 95       	ret
+
+0000004e <delay>:
+  4e:	08 95       	ret
+
+00000050 <main>:
+  50:	e8 df       	rcall	.-48     	; 0x22 <setup>
+  52:	b4 99       	sbic	0x16, 4	; 22
+  54:	02 c0       	rjmp	.+4      	; 0x5a <main+0xa>
+  56:	8f ef       	ldi	r24, 0xFF	; 255
+  58:	0b c0       	rjmp	.+22     	; 0x70 <main+0x20>
+  5a:	b3 99       	sbic	0x16, 3	; 22
+  5c:	02 c0       	rjmp	.+4      	; 0x62 <main+0x12>
+  5e:	80 ec       	ldi	r24, 0xC0	; 192
+  60:	07 c0       	rjmp	.+14     	; 0x70 <main+0x20>
+  62:	b2 99       	sbic	0x16, 2	; 22
+  64:	02 c0       	rjmp	.+4      	; 0x6a <main+0x1a>
+  66:	80 e8       	ldi	r24, 0x80	; 128
+  68:	03 c0       	rjmp	.+6      	; 0x70 <main+0x20>
+  6a:	b1 99       	sbic	0x16, 1	; 22
+  6c:	03 c0       	rjmp	.+6      	; 0x74 <main+0x24>
+  6e:	80 e4       	ldi	r24, 0x40	; 64
+  70:	df df       	rcall	.-66     	; 0x30 <PWM>
+  72:	ef cf       	rjmp	.-34     	; 0x52 <main+0x2>
+  74:	80 e0       	ldi	r24, 0x00	; 0
+  76:	dc df       	rcall	.-72     	; 0x30 <PWM>
+  78:	c0 9a       	sbi	0x18, 0	; 24
+  7a:	eb cf       	rjmp	.-42     	; 0x52 <main+0x2>
+
+0000007c <_exit>:
+  7c:	f8 94       	cli
+
+0000007e <__stop_program>:
+  7e:	ff cf       	rjmp	.-2      	; 0x7e <__stop_program>
